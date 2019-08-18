@@ -25,15 +25,13 @@ namespace Maxionderon.Function
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "mail")] HttpRequest req,
             ILogger log)
         {
-            log.LogInformation("C# HTTP trigger function processed a request.");
-
-            req.Headers.ToString();
-           
+            log.LogInformation("sendMailFunction processed a request.");
+         
             try {
 
                 string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
                 Email email = JsonConvert.DeserializeObject<Email>(requestBody);
-
+                
                 SendGridMessage sendGridMessage = new SendGridMessage();
                 
                 sendGridMessage.SetFrom(email.emailAddress, email.lastName + ", " + email.firstName);
@@ -48,12 +46,12 @@ namespace Maxionderon.Function
                 sendGridMessage.SetSubject(email.subject);
                 sendGridMessage.PlainTextContent = email.message;
 
-                string apiKey = System.Environment.GetEnvironmentVariable("SENDGRID_APIKEY");
+                string apiKey = Environment.GetEnvironmentVariable("SENDGRID_APIKEY");
                 SendGridClient sendGridClient = new SendGridClient(apiKey);
 
                 await sendGridClient.SendEmailAsync(sendGridMessage);
 
-                return new OkObjectResult("email was send");
+                return new OkObjectResult("email emitted");
 
             }catch(Exception e) {
 
@@ -63,7 +61,6 @@ namespace Maxionderon.Function
 
             }          
 
-              
         }
 
     }
