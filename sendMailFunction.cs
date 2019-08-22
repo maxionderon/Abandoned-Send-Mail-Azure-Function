@@ -13,13 +13,20 @@ using System.Collections.Generic;
 using SendGrid;
 using SendGrid.Helpers.Mail;
 
+using System.Net.Http;
+
 
 using Maxionderon.Function.Models;
+using Maxionderon.Function.Services;
 
 namespace Maxionderon.Function
 {
+    
+
     public static class sendMailFunction
-    {
+   {
+        private static readonly HttpClient Http = new HttpClient();
+
         [FunctionName("sendMailFunction")]
         public static async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "mail")] HttpRequest req,
@@ -31,7 +38,16 @@ namespace Maxionderon.Function
 
                 string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
                 Email email = JsonConvert.DeserializeObject<Email>(requestBody);
+
+                RecaptchaService recaptchaService = new RecaptchaService(email.recaptcha, Environment.GetEnvironmentVariable("RECAPTCHA_SECRET_KEY"), log);
                 
+                if(await recaptchaService.validate() == false) {
+
+                    return new BadRequestObjectResult(new[] { "verification failed." });
+
+                }
+
+                //send Email
                 SendGridMessage sendGridMessage = new SendGridMessage();
                 
                 sendGridMessage.SetFrom(email.emailAddress, email.lastName + ", " + email.firstName);
