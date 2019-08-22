@@ -1,6 +1,5 @@
 namespace Maxionderon.Function.Models
 {
-
     public class Email
     {
 
